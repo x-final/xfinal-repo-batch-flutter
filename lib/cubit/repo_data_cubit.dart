@@ -134,6 +134,15 @@ class RepoDataCubit extends Cubit<RepoDataState> {
     return recentCommitLogList;
   }
 
+  void writeWorkspaceToFile(String path) async {
+    await _gitRepository.writeWorkspaceToFile(path);
+    init();
+  }
+
+  Future<String> readWorkspaceFromFile() async {
+    return (await _gitRepository.readWorkspaceFromFile()).trim().toString();
+  }
+
   void writeRepoListToFile(String contents) async {
     await _gitRepository.writeRepoListToFile(contents);
     init();

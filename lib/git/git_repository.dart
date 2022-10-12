@@ -15,10 +15,20 @@ class GitRepository {
   static Function(ConsoleLog)? logCallback;
 
   Future<String> get _rootPath async => (await getApplicationDocumentsDirectory()).path + '/RepoBatch';
+  Future<String> get _workspacePath async => (await _rootPath) + '/workspace.txt';
   Future<String> get _repoUrlFilePath async => (await _rootPath) + '/repos.txt';
 
   Future<Directory> getRootDirectory() async {
     Directory directory = const LocalFileSystem().directory(await _rootPath);
+    if (!await directory.exists()) {
+      await directory.create();
+    }
+    return directory;
+  }
+
+  Future<Directory> getWorkspaceDirectory() async {
+    String path = await readWorkspaceFromFile();
+    Directory directory = const LocalFileSystem().directory(path);
     if (!await directory.exists()) {
       await directory.create();
     }
@@ -49,7 +59,7 @@ class GitRepository {
     required List<String> selectedList,
     required Function updateCallback,
   }) async {
-    Directory repoRootDir = await getRootDirectory();
+    Directory repoRootDir = await getWorkspaceDirectory();
     for (var repo in repoList) {
       if (repo.url == null) {
         continue;
@@ -88,7 +98,7 @@ class GitRepository {
     required Function updateCallback,
     List<String>? selectedList,
   }) async {
-    Directory repoDir = await getRootDirectory();
+    Directory repoDir = await getWorkspaceDirectory();
     List<FileSystemEntity> fileList = repoDir.listSync(recursive: false);
     for (var file in fileList) {
       if (!await GitDir.isGitDir(file.absolute.path)) {
@@ -335,6 +345,16 @@ class GitRepository {
     return result;
   }
 
+  Future<void> writeWorkspaceToFile(String path) async {
+    await getRootDirectory();
+    String workspacePath = await _workspacePath;
+    var file = const LocalFileSystem().file(workspacePath);
+    if (await file.exists()) {
+      await file.delete();
+    }
+    await file.writeAsString(path);
+  }
+
   Future<void> writeRepoListToFile(String contents) async {
     await getRootDirectory();
     String repoUrlFilePath = await _repoUrlFilePath;
@@ -350,6 +370,24 @@ class GitRepository {
       result += (value.trim() + '\n');
     }
     await file.writeAsString(result);
+  }
+
+  Future<String> readWorkspaceFromFile() async {
+    await getRootDirectory();
+    String workspace = "";
+    String workspacePath = await _workspacePath;
+    var file = const LocalFileSystem().file(workspacePath);
+    if (!await file.exists()) {
+      return workspace;
+    }
+    List<String> lines = await file.readAsLines();
+    for (var line in lines) {
+      if (line.trim().isNotEmpty) {
+        workspace = line.trim();
+        break;
+      }
+    }
+    return workspace;
   }
 
   Future<List<String>> readRepoListFromFile() async {
