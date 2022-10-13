@@ -3,6 +3,8 @@ on:
   push:
     tags:
       - "release-v*"
+  workflow_dispatch:
+
 
 #jobs:
 #  release-to-gitHub:
@@ -28,6 +30,7 @@ on:
 #          files: build/app/outputs/apk/release/*.apk
 #        env:
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
 jobs:
   release-windows:
