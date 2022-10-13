@@ -44,6 +44,10 @@ jobs:
           channel: 'stable'
       - run: flutter config --enable-windows-desktop
       - run: flutter build windows
+      - uses: actions/upload-artifact@v2
+        with:
+          name: windows_64
+          path: build/windows/runner/Release/
   release-macos:
     name: release-macos
     runs-on: macos-latest
@@ -56,3 +60,7 @@ jobs:
           architecture: x64
       - run: flutter config --enable-macos-desktop
       - run: flutter build macos
+      - uses: actions/upload-artifact@v2
+        with:
+          name: macos
+          path: build/macos/Build/*.app
